@@ -2,14 +2,16 @@
    - Columnas: backlog, todo, inprogress, review, done
    - CRUD: crear, editar, eliminar
    - Drag & Drop para mover columnas
-   - Persistencia: localStorage
+   - Persistencia: Firebase Firestore
    - Exportar/Importar JSON
 */
 
-const LS_KEY = "kanban_tasks_v1";
-
 const $ = (sel, ctx=document) => ctx.querySelector(sel);
 const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
+
+// Initialize Cloud Firestore and get a reference to the service
+const db = firebase.firestore();
+const tasksCollection = db.collection("tasks");
 
 const dialog = $("#dlgTask");
 const form = $("#frmTask");
@@ -32,16 +34,21 @@ const columns = {
   done: $("#col-done"),
 };
 
-let tasks = loadTasks();
+let tasks = [];
 
 // --------- Init UI ---------
-render();
-attachDnD();
-$("#btnAdd").addEventListener("click", openNew);
-$("#btnExport").addEventListener("click", exportJSON);
-$("#btnReset").addEventListener("click", () => { if(confirm("¿Limpiar tablero y restaurar demo?")) resetDemo(); });
-$("#fileImport").addEventListener("change", importJSON);
-search.addEventListener("input", render);
+async function init() {
+  tasks = await loadTasks();
+  render();
+  attachDnD();
+  $("#btnAdd").addEventListener("click", openNew);
+  $("#btnExport").addEventListener("click", exportJSON);
+  $("#btnReset").addEventListener("click", () => { if(confirm("¿Limpiar tablero y restaurar demo?")) resetDemo(); });
+  $("#fileImport").addEventListener("change", importJSON);
+  search.addEventListener("input", render);
+}
+init();
+
 
 // --------- CRUD ---------
 function openNew(){
@@ -63,7 +70,7 @@ function openEdit(task){
   if (!dialog.open) dialog.showModal();
 }
 
-form.addEventListener("submit", (ev) => {
+form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   const data = {
     id: inpId.value || crypto.randomUUID(),
@@ -79,17 +86,18 @@ form.addEventListener("submit", (ev) => {
   const i = tasks.findIndex(t => t.id === data.id);
   if (i >= 0) tasks[i] = data; else tasks.push(data);
 
-  saveTasks();
+  await saveTasks();
   render();
   dialog.close();
 });
 
 dialog.addEventListener("close", () => form.reset());
 
-function removeTask(id){
+async function removeTask(id){
   if (!confirm("¿Eliminar esta tarea?")) return;
   tasks = tasks.filter(t => t.id !== id);
-  saveTasks(); render();
+  await saveTasks();
+  render();
 }
 
 // --------- Render ---------
@@ -153,7 +161,7 @@ function attachDnD(){
   $$(".dropzone").forEach(zone => {
     zone.addEventListener("dragover", (ev)=>{ ev.preventDefault(); zone.classList.add("dragover"); });
     zone.addEventListener("dragleave", ()=> zone.classList.remove("dragover"));
-    zone.addEventListener("drop", (ev)=>{
+    zone.addEventListener("drop", async (ev)=>{
       ev.preventDefault();
       zone.classList.remove("dragover");
       const id = draggingId || ev.dataTransfer.getData("text/plain");
@@ -161,28 +169,59 @@ function attachDnD(){
       if (!t) return;
       const status = zone.parentElement.getAttribute("data-status");
       t.status = status;
-      saveTasks(); render();
+      await saveTasks();
+      render();
     });
   });
 }
 
-// --------- Persistencia ---------
-function loadTasks(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if (raw){ return JSON.parse(raw); }
-  }catch(e){ console.warn("No se pudo leer localStorage", e); }
-  // Si no hay datos, sembramos demo para el proyecto "Lista de Compras"
-  return seedDemo();
+// --------- Persistencia (Firestore) ---------
+async function loadTasks() {
+  try {
+    const snapshot = await tasksCollection.get();
+    if (snapshot.empty) {
+        console.log("No tasks found, seeding with demo data.");
+        const demoTasks = seedDemo();
+        tasks = demoTasks;
+        await saveTasks(); // Save the demo tasks to Firestore
+        return demoTasks;
+    }
+    return snapshot.docs.map(doc => doc.data());
+  } catch (e) {
+    console.error("Error loading tasks from Firestore. Using demo data.", e);
+    alert("No se pudo conectar con Firestore. Se cargarán datos de demostración.");
+    return seedDemo();
+  }
 }
 
-function saveTasks(){
-  localStorage.setItem(LS_KEY, JSON.stringify(tasks));
+async function saveTasks() {
+  try {
+    const batch = db.batch();
+
+    // Get all documents in the collection to delete them
+    const snapshot = await tasksCollection.get();
+    snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+
+    // Add all current tasks from the local array
+    tasks.forEach(task => {
+        const docRef = tasksCollection.doc(task.id);
+        batch.set(docRef, task);
+    });
+
+    await batch.commit();
+  } catch (e) {
+    console.error("Could not save tasks to Firestore.", e);
+    alert("No se pudo guardar en Firestore. Tus cambios podrían no persistir.");
+  }
 }
 
-function resetDemo(){
+
+async function resetDemo(){
   tasks = seedDemo();
-  saveTasks(); render();
+  await saveTasks();
+  render();
 }
 
 function seedDemo(){
@@ -215,7 +254,7 @@ function importJSON(ev){
   const file = ev.target.files?.[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try{
       const data = JSON.parse(reader.result);
       if (!Array.isArray(data)) throw new Error("Formato inválido");
@@ -229,7 +268,8 @@ function importJSON(ev){
         priority: ["alta","media","baja"].includes(t.priority) ? t.priority : "media",
         status: ["backlog","todo","inprogress","review","done"].includes(t.status) ? t.status : "backlog"
       }));
-      saveTasks(); render();
+      await saveTasks();
+      render();
       ev.target.value = ""; // reset input
     }catch(err){
       alert("No se pudo importar: " + err.message);

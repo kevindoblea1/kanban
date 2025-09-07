@@ -1,0 +1,65 @@
+[
+  {
+    "id": "f237df54-1b62-4c86-a18b-4fb8fd804d7f",
+    "title": "Configurar proyecto MAUI",
+    "description": "Crear solución y targets Windows/Android.",
+    "owner": "A",
+    "dueDate": "2025-09-08T21:24:17.323Z",
+    "priority": "alta",
+    "status": "backlog"
+  },
+  {
+    "id": "e15d208f-f7b1-49ad-9f72-422bd995cca5",
+    "title": "Modelo ShoppingItem",
+    "description": "Id, Name, IsPurchased",
+    "owner": "B",
+    "dueDate": "2025-09-09T21:24:17.323Z",
+    "priority": "media",
+    "status": "backlog"
+  },
+  {
+    "id": "52061166-47f5-499d-9aa4-e1026184dc83",
+    "title": "Servicio SQLite",
+    "description": "Load/Save con sqlite-net-pcl",
+    "owner": "B",
+    "dueDate": "2025-09-10T21:24:17.323Z",
+    "priority": "alta",
+    "status": "todo"
+  },
+  {
+    "id": "9574e8b9-7ead-4996-8615-c2c9ae93723d",
+    "title": "ViewModel CRUD",
+    "description": "Add/Edit/Delete/Toggle + Filter",
+    "owner": "C",
+    "dueDate": "2025-09-11T21:24:17.323Z",
+    "priority": "alta",
+    "status": "todo"
+  },
+  {
+    "id": "0c0e1e44-8382-4aa0-91eb-416fe9114883",
+    "title": "UI XAML con Swipe",
+    "description": "Entry, SearchBar, CollectionView",
+    "owner": "D",
+    "dueDate": "2025-09-12T21:24:17.323Z",
+    "priority": "media",
+    "status": "inprogress"
+  },
+  {
+    "id": "34d31279-58c3-42a8-8d7a-2e7d9ecff6fc",
+    "title": "QA y README",
+    "description": "Plan de pruebas + capturas",
+    "owner": "E",
+    "dueDate": "2025-09-13T21:24:17.323Z",
+    "priority": "baja",
+    "status": "review"
+  },
+  {
+    "id": "d5a3f657-0a27-47ad-baf9-1908982e7f69",
+    "title": "Alpha Demo",
+    "description": "Windows + Android corriendo",
+    "owner": "Equipo",
+    "dueDate": "2025-09-14T21:24:17.323Z",
+    "priority": "alta",
+    "status": "done"
+  }
+]
