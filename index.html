@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kanban del Equipo #2</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Kanban — Lista de Compras (Equipo #2)</h1>
+      <div class="toolbar">
+        <button id="btnAdd">➕ Nueva tarea</button>
+        <input
+          id="search"
+          type="search"
+          placeholder="Buscar por título o responsable..."
+        />
+        <button id="btnExport" title="Exportar JSON">⤓ Exportar</button>
+        <label class="import-btn" title="Importar JSON">
+          ⤒ Importar
+          <input id="fileImport" type="file" accept="application/json" hidden />
+        </label>
+        <button
+          id="btnReset"
+          class="danger"
+          title="Borrar todo (mantiene demo)"
+        >
+          🧹 Limpiar (demo)
+        </button>
+      </div>
+    </header>
+
+    <main class="board" id="board" aria-label="Tablero Kanban">
+      <section class="column" data-status="backlog" aria-label="Backlog">
+        <h2>Backlog</h2>
+        <div class="dropzone" id="col-backlog"></div>
+      </section>
+
+      <section class="column" data-status="todo" aria-label="Por hacer">
+        <h2>Por hacer</h2>
+        <div class="dropzone" id="col-todo"></div>
+      </section>
+
+      <section class="column" data-status="inprogress" aria-label="En proceso">
+        <h2>En proceso</h2>
+        <div class="dropzone" id="col-inprogress"></div>
+      </section>
+
+      <section class="column" data-status="review" aria-label="En revisión">
+        <h2>En revisión</h2>
+        <div class="dropzone" id="col-review"></div>
+      </section>
+
+      <section class="column" data-status="done" aria-label="Terminadas">
+        <h2>Terminadas</h2>
+        <div class="dropzone" id="col-done"></div>
+      </section>
+    </main>
+
+    <dialog id="dlgTask">
+      <form id="frmTask" method="dialog">
+        <h3 id="dlgTitle">Nueva tarea</h3>
+        <input type="hidden" id="taskId" />
+        <label
+          >Título
+          <input
+            id="taskTitle"
+            required
+            maxlength="100"
+            placeholder="Ej. Implementar búsqueda"
+          />
+        </label>
+        <label
+          >Descripción
+          <textarea
+            id="taskDesc"
+            rows="3"
+            placeholder="Detalles de la tarea..."
+          ></textarea>
+        </label>
+        <div class="row">
+          <label
+            >Responsable
+            <input id="taskOwner" placeholder="Ej. Kevin" />
+          </label>
+          <label
+            >Vence
+            <input id="taskDue" type="date" />
+          </label>
+        </div>
+        <div class="row">
+          <label
+            >Prioridad
+            <select id="taskPriority">
+              <option value="media">Media</option>
+              <option value="alta">Alta</option>
+              <option value="baja">Baja</option>
+            </select>
+          </label>
+          <label
+            >Estado
+            <select id="taskStatus">
+              <option value="backlog">Backlog</option>
+              <option value="todo">Por hacer</option>
+              <option value="inprogress">En proceso</option>
+              <option value="review">En revisión</option>
+              <option value="done">Terminada</option>
+            </select>
+          </label>
+        </div>
+        <menu>
+          <button value="cancel">Cancelar</button>
+          <button id="btnSave" class="primary" value="default">Guardar</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <template id="tplCard">
+      <article class="card" draggable="true">
+        <header>
+          <span class="badge priority"></span>
+          <div class="actions">
+            <button class="icon edit" title="Editar" aria-label="Editar">
+              ✎
+            </button>
+            <button class="icon delete" title="Eliminar" aria-label="Eliminar">
+              🗑
+            </button>
+          </div>
+        </header>
+        <h4 class="title"></h4>
+        <p class="desc"></p>
+        <footer>
+          <span class="owner"></span>
+          <time class="due"></time>
+        </footer>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
